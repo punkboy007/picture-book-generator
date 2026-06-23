@@ -1,0 +1,611 @@
+﻿<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>儿童绘本AI分镜生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .animal-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .output-area {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .scene-card {
+            background: white;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .scene-card:hover {
+            transform: translateX(5px);
+        }
+
+        .scene-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .scene-prompt {
+            background: #fff3cd;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 13px;
+            color: #856404;
+        }
+
+        .scene-prompt strong {
+            color: #664d03;
+        }
+
+        .scene-narration {
+            background: #d1ecf1;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 14px;
+            color: #0c5460;
+            font-style: italic;
+        }
+
+        .scene-narration strong {
+            color: #059567;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #667eea;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .export-buttons {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .tag {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin: 2px;
+        }
+
+        .tips {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #2e7d32;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 28px;
+            }
+            .card {
+                padding: 20px;
+            }
+            .animal-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 儿童绘本AI分镜生成器</h1>
+            <p>输入小动物名称，自动生成3D皮克斯风格的绘本分镜提示词</p>
+        </div>
+
+        <!-- 输入区域 -->
+        <div class="card">
+            <h2 style="margin-bottom: 20px; color: #333;">🎨 创作设置</h2>
+            
+            <div class="form-group">
+                <label>🐻 小动物名称（至少2只）</label>
+                <div class="animal-inputs">
+                    <input type="text" id="animal1" placeholder="例如：小乌龟" value="小乌龟">
+                    <input type="text" id="animal2" placeholder="例如：长颈鹿" value="长颈鹿">
+                    <input type="text" id="animal3" placeholder="可选：第三只动物">
+                    <input type="text" id="animal4" placeholder="可选：第四只动物">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>👕 动物服装风格（可选）</label>
+                <select id="clothingStyle">
+                    <option value="">无服装（自然状态）</option>
+                    <option value="穿着牛仔服">穿着牛仔服</option>
+                    <option value="穿着公主裙">穿着公主裙</option>
+                    <option value="穿着超人服装">穿着超人服装</option>
+                    <option value="穿着宇航服">穿着宇航服</option>
+                    <option value="穿着海盗服装">穿着海盗服装</option>
+                    <option value="自定义">自定义</option>
+                </select>
+                <input type="text" id="customClothing" placeholder="输入自定义服装描述" style="display: none; margin-top: 10px;">
+            </div>
+
+            <div class="form-group">
+                <label>📖 故事主题（可选）</label>
+                <input type="text" id="storyTheme" placeholder="例如：友谊、勇气、冒险、帮助他人">
+            </div>
+
+            <div class="form-group">
+                <label>🎭 故事类型</label>
+                <select id="storyType">
+                    <option value="adventure">冒险故事</option>
+                    <option value="friendship">友谊故事</option>
+                    <option value="problem-solving">解决问题</option>
+                    <option value="holiday">节日故事</option>
+                    <option value="daily-life">日常生活</option>
+                </select>
+            </div>
+
+            <div class="tips">
+                💡 <strong>提示：</strong>保持动物形象一致是关键！如果选择了服装，所有分镜中的动物都需要穿着相同的服装。
+            </div>
+
+            <div style="text-align: center; margin-top: 25px;">
+                <button class="btn btn-primary" onclick="generateStoryboard()">✨ 生成分镜提示词</button>
+                <button class="btn btn-secondary" onclick="randomAnimals()">🎲 随机动物</button>
+                <button class="btn btn-warning" onclick="clearForm()">🗑️ 清空</button>
+            </div>
+        </div>
+
+        <!-- 统计信息 -->
+        <div class="stats" id="statsArea" style="display: none;">
+            <div class="stat-item">
+                <div class="stat-number" id="statScenes">0</div>
+                <div class="stat-label">分镜数量</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="statAnimals">0</div>
+                <div class="stat-label">动物角色</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="statWords">0</div>
+                <div class="stat-label">总字数</div>
+            </div>
+        </div>
+
+        <!-- 输出区域 -->
+        <div class="card" id="outputCard" style="display: none;">
+            <h2 style="margin-bottom: 20px; color: #333;">📋 绘本分镜方案</h2>
+            <div id="outputContent"></div>
+            
+            <div class="export-buttons">
+                <button class="btn btn-success" onclick="exportToText()">📥 导出为TXT</button>
+                <button class="btn btn-primary" onclick="copyToClipboard()">📋 复制到剪贴板</button>
+                <button class="btn btn-warning" onclick="regenerate()">🔄 重新生成</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 动物库
+        const animalPool = [
+            '小乌龟', '长颈鹿', '小兔子', '小熊', '小狐狸', '小松鼠',
+            '小猫咪', '小狗', '小熊猫', '小象', '小猴子', '小老虎',
+            '小狮子', '小企鹅', '小海豚', '小鸟', '小蝴蝶', '小蜜蜂',
+            '小青蛙', '小鳄鱼', '小恐龙', '小独角兽', '小 dragon',
+            '小猪', '小羊', '小牛', '小马', '小骆驼', '小袋鼠'
+        ];
+
+        // 场景模板库
+        const sceneTemplates = {
+            adventure: [
+                { prompt: '冒险开始，{animal1}和{animal2}发现了一张神秘的藏宝图', narration: '一天，{animal1}和{animal2}在森林里发现了一张神秘的藏宝图！' },
+                { prompt: '穿越森林，{animal1}和{animal2}小心翼翼地走在蜿蜒的小路上', narration: '它们背上行囊，踏上了寻找宝藏的冒险之旅。' },
+                { prompt: '遇到河流，{animal2}用长长的脖子搭成桥梁让{animal1}通过', narration: '一条大河挡住了去路，{animal2}灵机一动，用身体搭成了一座桥。' },
+                { prompt: '发现宝藏洞穴，洞口闪烁着神秘的光芒', narration: '终于，它们来到了宝藏洞穴前，里面闪烁着奇异的光芒。' },
+                { prompt: '宝藏是友谊的勋章，两个小动物开心地拥抱', narration: '宝藏不是金银珠宝，而是一枚象征着友谊的勋章！' }
+            ],
+            friendship: [
+                { prompt: '{animal1}和{animal2}在公园里初次相遇', narration: '在一个阳光明媚的早晨，{animal1}和{animal2}在公园里第一次见面了。' },
+                { prompt: '{animal1}遇到困难，{animal2}主动上前帮助', narration: '可是{animal1}遇到了困难，{animal2}毫不犹豫地伸出了援手。' },
+                { prompt: '两个小动物一起玩耍，在草地上打滚', narration: '从此，它们成了最好的朋友，每天都在一起快乐地玩耍。' },
+                { prompt: '一起看日落，背影温馨', narration: '傍晚时分，两个好朋友并肩坐着，一起欣赏美丽的日落。' },
+                { prompt: '约定要做永远的好朋友，手拉手', narration: '"我们要做永远的好朋友！"它们手拉手，许下了美好的约定。' }
+            ],
+            'problem-solving': [
+                { prompt: '{animal1}遇到了一个难题，看起来很烦恼', narration: '{animal1}遇到了一个大难题，愁得直挠头。' },
+                { prompt: '{animal2}过来询问情况，耐心倾听', narration: '{animal2}走过来，耐心地问：\"怎么了？我来帮你想想办法！\"' },
+                { prompt: '两个小动物一起讨论，画出解决方案', narration: '它们一起商量，画呀画，终于找到了解决问题的方法。' },
+                { prompt: '动手实践，合作完成任务', narration: '说干就干！两个好朋友分工合作，很快就解决了难题。' },
+                { prompt: '成功庆祝，击掌欢呼', narration: '\"我们做到了！\"两个小动物高兴地击掌庆祝，心里美滋滋的。' }
+            ],
+            holiday: [
+                { prompt: '节日到了，{animal1}和{animal2}一起准备派对', narration: '今天是特别的节日，{animal1}和{animal2}决定一起举办一个盛大的派对！' },
+                { prompt: '装饰房间，挂彩灯和气球', narration: '它们忙忙碌碌，挂上了五颜六色的彩灯和气球。' },
+                { prompt: '准备美食，桌子上摆满食物', narration: '厨房里飘出阵阵香味，桌子上摆满了美味佳肴。' },
+                { prompt: '朋友们到来，大家一起跳舞唱歌', narration: '朋友们陆续到来，大家手拉手围成圈，又唱又跳。' },
+                { prompt: '烟花绽放，两个小动物许下心愿', narration: '夜空中绽放出绚丽的烟花，{animal1}和{animal2}闭上眼睛，许下了最美好的心愿。' }
+            ],
+            'daily-life': [
+                { prompt: '{animal1}和{animal2}一起上学去', narration: '清晨，{animal1}和{animal2}背着书包，高高兴兴地去上学。' },
+                { prompt: '在课堂上认真听讲，积极举手发言', narration: '课堂上，两个好朋友坐得端端正正，认真听老师讲课。' },
+                { prompt: '课间休息时一起玩游戏', narration: '下课铃响了，它们跑到操场上，和小伙伴们一起玩捉迷藏。' },
+                { prompt: '放学路上一起回家，分享零食', narration: '放学了，两个好朋友一路上有说有笑，还分享了各自的零食。' },
+                { prompt: '到家后约定明天再见', narration: '\"明天见！\"两个好朋友挥挥手，告别后又期待起下一次相聚。' }
+            ]
+        };
+
+        // 服装前缀生成
+        function getClothingPrefix(style) {
+            if (style === '自定义') {
+                return document.getElementById('customClothing').value || '';
+            }
+            return style;
+        }
+
+        // 显示/隐藏自定义输入
+        document.getElementById('clothingStyle').addEventListener('change', function() {
+            const customInput = document.getElementById('customClothing');
+            customInput.style.display = this.value === '自定义' ? 'block' : 'none';
+        });
+
+        // 随机选择动物
+        function randomAnimals() {
+            const shuffled = [...animalPool].sort(() => 0.5 - Math.random());
+            document.getElementById('animal1').value = shuffled[0];
+            document.getElementById('animal2').value = shuffled[1];
+            document.getElementById('animal3').value = shuffled[2] || '';
+            document.getElementById('animal4').value = shuffled[3] || '';
+        }
+
+        // 清空表单
+        function clearForm() {
+            document.getElementById('animal1').value = '';
+            document.getElementById('animal2').value = '';
+            document.getElementById('animal3').value = '';
+            document.getElementById('animal4').value = '';
+            document.getElementById('storyTheme').value = '';
+            document.getElementById('clothingStyle').selectedIndex = 0;
+            document.getElementById('customClothing').value = '';
+        }
+
+        // 获取动物全称（带服装）
+        function getAnimalFullName(animal, clothing) {
+            if (!clothing) return animal;
+            return clothing + '的' + animal;
+        }
+
+        // 生成场景描述
+        function generateSceneDescription(scene, animal1, animal2, animal3, animal4, clothing) {
+            let prompt = scene.prompt
+                .replace(/{animal1}/g, getAnimalFullName(animal1, clothing))
+                .replace(/{animal2}/g, getAnimalFullName(animal2, clothing))
+                .replace(/{animal3}/g, animal3 ? getAnimalFullName(animal3, clothing) : '')
+                .replace(/{animal4}/g, animal4 ? getAnimalFullName(animal4, clothing) : '');
+            
+            // 移除可能留下的空值
+            prompt = prompt.replace(/，{[^}]*}/g, '').replace(/，，/g, '，');
+            
+            return prompt;
+        }
+
+        // 生成分镜
+        function generateStoryboard() {
+            const animal1 = document.getElementById('animal1').value.trim();
+            const animal2 = document.getElementById('animal2').value.trim();
+            const animal3 = document.getElementById('animal3').value.trim();
+            const animal4 = document.getElementById('animal4').value.trim();
+            const clothing = getClothingPrefix(document.getElementById('clothingStyle').value);
+            const storyType = document.getElementById('storyType').value;
+            const theme = document.getElementById('storyTheme').value.trim();
+
+            // 验证
+            if (!animal1 || !animal2) {
+                alert('请至少输入两只小动物的名称！');
+                return;
+            }
+
+            const animals = [animal1, animal2].concat([animal3, animal4].filter(a => a));
+            const templates = sceneTemplates[storyType];
+            
+            // 随机选择5-8个场景
+            const numScenes = 5 + Math.floor(Math.random() * 4);
+            const shuffled = [...templates].sort(() => 0.5 - Math.random());
+            const selectedScenes = shuffled.slice(0, Math.min(numScenes, templates.length));
+
+            // 生成输出
+            let output = '';
+            let totalWords = 0;
+
+            selectedScenes.forEach((scene, index) => {
+                const sceneNum = index + 1;
+                const prompt = generateSceneDescription(scene, animal1, animal2, animal3, animal4, clothing);
+                const fullPrompt = 3d皮克斯风格，;
+                const narration = scene.narration
+                    .replace(/{animal1}/g, getAnimalFullName(animal1, clothing))
+                    .replace(/{animal2}/g, getAnimalFullName(animal2, clothing))
+                    .replace(/{animal3}/g, animal3 ? getAnimalFullName(animal3, clothing) : '')
+                    .replace(/{animal4}/g, animal4 ? getAnimalFullName(animal4, clothing) : '');
+
+                totalWords += fullPrompt.length + narration.length;
+
+                output += 
+                <div class="scene-card">
+                    <span class="scene-number">场景 </span>
+                    <div class="scene-prompt">
+                        <strong>🎬 画面提示词：</strong><br>
+                        
+                    </div>
+                    <div class="scene-narration">
+                        <strong>📖 旁白：</strong><br>
+                        
+                    </div>
+                </div>;
+            });
+
+            // 显示结果
+            document.getElementById('outputContent').innerHTML = output;
+            document.getElementById('outputCard').style.display = 'block';
+            document.getElementById('statsArea').style.display = 'grid';
+            
+            document.getElementById('statScenes').textContent = selectedScenes.length;
+            document.getElementById('statAnimals').textContent = animals.length;
+            document.getElementById('statWords').textContent = totalWords;
+
+            // 滚动到结果区域
+            document.getElementById('outputCard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 导出为TXT
+        function exportToText() {
+            const animal1 = document.getElementById('animal1').value.trim();
+            const animal2 = document.getElementById('animal2').value.trim();
+            const animal3 = document.getElementById('animal3').value.trim();
+            const animal4 = document.getElementById('animal4').value.trim();
+            const clothing = getClothingPrefix(document.getElementById('clothingStyle').value);
+            const theme = document.getElementById('storyTheme').value.trim();
+
+            let text = 《和的故事》儿童绘本分镜提示词\n;
+            text += 生成日期：\n;
+            text += 风格：3D皮克斯风格;
+            if (clothing) text += ，;
+            text += \n;
+            if (theme) text += 主题：\n;
+            text += ${'='.repeat(60)}\n\n;
+
+            const scenes = document.querySelectorAll('.scene-card');
+            scenes.forEach((scene, index) => {
+                const sceneNum = index + 1;
+                const prompt = scene.querySelector('.scene-prompt').innerText.replace('🎬 画面提示词：', '');
+                const narration = scene.querySelector('.scene-narration').innerText.replace('📖 旁白：', '');
+
+                text += 【场景】\n;
+                text += 提示词：\n;
+                text += 旁白：\n\n;
+            });
+
+            text += ${'='.repeat(60)}\n;
+            text += 💡 使用说明：\n;
+            text += 1. 将每个场景的提示词输入到AI图像生成工具（如Midjourney、DALL-E等）\n;
+            text += 2. 确保所有分镜中的动物形象保持一致\n;
+            text += 3. 旁白可用于配音或文字标注\n;
+
+            // 创建下载
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 儿童绘本_和_分镜提示词.txt;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 复制到剪贴板
+        function copyToClipboard() {
+            const scenes = document.querySelectorAll('.scene-card');
+            let text = '';
+            scenes.forEach((scene, index) => {
+                const sceneNum = index + 1;
+                const prompt = scene.querySelector('.scene-prompt').innerText.replace('🎬 画面提示词：', '');
+                const narration = scene.querySelector('.scene-narration').innerText.replace('📖 旁白：', '');
+                text += 场景：\n旁白：\n\n;
+            });
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ 已复制到剪贴板！');
+            }).catch(() => {
+                alert('❌ 复制失败，请手动复制');
+            });
+        }
+
+        // 重新生成
+        function regenerate() {
+            generateStoryboard();
+        }
+
+        // 页面加载时随机填充示例
+        window.addEventListener('load', () => {
+            randomAnimals();
+        });
+    </script>
+</body>
+</html>
